@@ -15,11 +15,6 @@ router.post("/create-order", paymentController.createOrder);
 
 router.post("/jioPGCallback", paymentController.jioPGCallback); 
 
-router.get("/jioPGCallback", (req, res) => {
-  res.send("<h2>❌ Invalid access to callback. This URL is for POST requests from PayPhi.</h2>");
-});
-
-
 router.get("/checkstatus", async (req, res) => {
   try {
     const [rows] = await db.query("SELECT * FROM transactions ORDER BY id DESC LIMIT 1");
