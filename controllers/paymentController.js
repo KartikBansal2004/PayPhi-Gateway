@@ -250,7 +250,6 @@ const qs = require("querystring");
 const MERCHANT_ID = "JP2000000000031";
 const SECRET_KEY = "abc"; // replace with your actual secret key
 
-// Last transaction tracker
 let lastTransaction = null;
 
 // Create payment order
@@ -258,7 +257,6 @@ exports.createOrder = async (req, res) => {
   const amount = req.body.amount;
   const txnId = "TXN" + Date.now();
 
-  // Save for later use
   lastTransaction = {
     txnId: txnId,
     amount: amount,
@@ -301,7 +299,12 @@ exports.createOrder = async (req, res) => {
       }
     );
 
-    return res.redirect(response.data.paymentUrl);
+    // ✅ Fix: Return JSON response instead of redirect
+    if (response.data.paymentUrl) {
+      return res.json({ redirectUrl: response.data.paymentUrl });
+    } else {
+      return res.status(400).json({ error: "Payment URL not received" });
+    }
   } catch (error) {
     console.error("Error in createOrder:", error.message);
     return res.status(500).json({ error: "Payment request failed" });
@@ -321,14 +324,14 @@ exports.jioPGCallback = async (req, res) => {
 
     const status = responseCode === "E000" ? "Success" : "Failed";
 
-    // Insert transaction details into database
+    // Insert transaction into database
     await db.query(
       `INSERT INTO transactions (merchantTxnNo, amount, responseCode, status, created_at)
        VALUES (?, ?, ?, ?, NOW())`,
       [merchantTxnNo, amount || 0, responseCode, status]
     );
 
-    // Respond with JSON
+    // Return payment result as JSON
     return res.status(200).json({
       success: true,
       message: "Payment processed",
@@ -349,7 +352,7 @@ exports.jioPGCallback = async (req, res) => {
   }
 };
 
-// Optional: Check last status (if needed)
+// Optional: Check last transaction (if needed)
 exports.getLastTransactionStatus = (req, res) => {
   if (!lastTransaction) {
     return res.status(404).json({ message: "No transaction found" });
