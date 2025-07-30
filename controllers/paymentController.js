@@ -11,67 +11,127 @@ const SECRET_KEY = "abc";
 let lastTransaction = null;
 
 exports.createOrder = async (req, res) => {
-  const amount = req.body.amount;
-  const txnId = "TXN" + Date.now();
-
-  const payload = {
-    merchantId: MERCHANT_ID,
-    merchantTxnNo: txnId,
-    amount: amount,
-    currencyCode: "356",
-    payType: "0",
-    customerEmailID: "",
-    transactionType: "SALE",
-    txnDate: getCurrentYmdHis(),
-    returnURL: "http://13.235.80.49:3000/jioPGCallback",
-    customerMobileNo: "",
-    addlParam1: "RES123456789",
-    addlParam2: "",
-  };
-
-  // Generate secureHash
-  const sortedKeys = Object.keys(payload).sort();
-  let message = "";
-  for (const key of sortedKeys) {
-    const value = payload[key];
-    if (value !== null && value !== "") {
-      message += value;
-    }
-  }
-
-  const hash = crypto
-    .createHmac("sha256", SECRET_KEY)
-    .update(message)
-    .digest("hex")
-    .toLowerCase();
-
-  payload.secureHash = hash;
-
   try {
-    const response = await axios.post(
-      "https://uat.jiopay.co.in/tsp/pg/api/v2/initiateSale",
-      payload,
-      { headers: { "Content-Type": "application/json" } }
-    );
+    const { amount } = req.body;
+    if (!amount || isNaN(amount)) {
+      console.log("❌ Invalid amount received:", amount);
+      return res.status(400).json({ error: "Invalid amount" });
+    }
 
-    console.log("✅ PayPhi Response:", response.data);
+    const txnId = "TXN" + Date.now();
+    const txnDate = getCurrentDateTime(); // Make sure this is correct
+    const returnURL = "http://13.235.80.49:3000/jioPGCallback";
 
-    if (response.data.responseCode === "R1000" && response.data.redirectURI) {
-      res.json({
-        redirectUrl:
-          response.data.redirectURI + "?tranCtx=" + response.data.tranCtx,
-      });
+    const payload = {
+      merchantId: MERCHANT_ID,
+      merchantTxnNo: txnId,
+      amount: parseFloat(amount).toFixed(2),
+      currencyCode: "356",
+      payType: "0",
+      transactionType: "SALE",
+      txnDate,
+      returnURL,
+      customerEmailID: "",
+    };
+
+    const payloadStr = JSON.stringify(payload);
+    const hash = crypto
+      .createHmac("sha256", SECRET_KEY)
+      .update(payloadStr)
+      .digest("hex");
+
+    const requestBody = {
+      requestMsg: payloadStr,
+      requestSignature: hash,
+    };
+
+    console.log("📤 Sending payload to PayPhi:", requestBody);
+
+    const payphiRes = await axios.post("https://uat.payphi.com/jioapi/init", requestBody, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    console.log("✅ PayPhi response:", payphiRes.data);
+
+    const responseData = payphiRes.data;
+
+    if (responseData.responseCode === "000") {
+      return res.json({ redirectUrl: responseData.redirectUrl });
     } else {
-      res.status(400).json({
-        error: "PayPhi did not return redirect URL",
-        details: response.data,
-      });
+      console.log("⚠️ PayPhi error response:", responseData);
+      return res.status(500).json({ error: "PayPhi returned an error", details: responseData });
     }
   } catch (err) {
-    console.error("❌ PayPhi API Error:", err?.response?.data || err.message);
+    console.error("❌ Error initiating PayPhi payment:", err?.response?.data || err.message);
     res.status(500).json({ error: "Failed to initiate PayPhi payment" });
   }
 };
+
+
+// exports.createOrder = async (req, res) => {
+//   const amount = req.body.amount;
+//   const txnId = "TXN" + Date.now();
+
+//   const payload = {
+//     merchantId: MERCHANT_ID,
+//     merchantTxnNo: txnId,
+//     amount: amount,
+//     currencyCode: "356",
+//     payType: "0",
+//     customerEmailID: "",
+//     transactionType: "SALE",
+//     txnDate: getCurrentYmdHis(),
+//     returnURL: "http://13.235.80.49:3000/jioPGCallback",
+//     customerMobileNo: "",
+//     addlParam1: "RES123456789",
+//     addlParam2: "",
+//   };
+
+//   // Generate secureHash
+//   const sortedKeys = Object.keys(payload).sort();
+//   let message = "";
+//   for (const key of sortedKeys) {
+//     const value = payload[key];
+//     if (value !== null && value !== "") {
+//       message += value;
+//     }
+//   }
+
+//   const hash = crypto
+//     .createHmac("sha256", SECRET_KEY)
+//     .update(message)
+//     .digest("hex")
+//     .toLowerCase();
+
+//   payload.secureHash = hash;
+
+//   try {
+//     const response = await axios.post(
+//       "https://uat.jiopay.co.in/tsp/pg/api/v2/initiateSale",
+//       payload,
+//       { headers: { "Content-Type": "application/json" } }
+//     );
+
+//     console.log("✅ PayPhi Response:", response.data);
+
+//     if (response.data.responseCode === "R1000" && response.data.redirectURI) {
+//       res.json({
+//         redirectUrl:
+//           response.data.redirectURI + "?tranCtx=" + response.data.tranCtx,
+//       });
+//     } else {
+//       res.status(400).json({
+//         error: "PayPhi did not return redirect URL",
+//         details: response.data,
+//       });
+//     }
+//   } catch (err) {
+//     console.error("❌ PayPhi API Error:", err?.response?.data || err.message);
+//     res.status(500).json({ error: "Failed to initiate PayPhi payment" });
+//   }
+// };
 
 exports.jioPGCallback = async (req, res) => {
   console.log("📥 Received PayPhi Callback Body:", req.body);
