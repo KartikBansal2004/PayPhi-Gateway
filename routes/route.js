@@ -15,9 +15,6 @@ router.post("/create-order", paymentController.createOrder);
 
 router.post("/jioPGCallback", paymentController.jioPGCallback); 
 
-router.get("/last-txn", paymentController.getLastTransaction);
-
-
 router.get("/checkstatus", async (req, res) => {
   try {
     const [rows] = await db.query("SELECT * FROM transactions ORDER BY id DESC LIMIT 1");
