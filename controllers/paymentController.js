@@ -73,19 +73,20 @@ exports.createOrder = async (req, res) => {
 //   }
 // };
 
-} catch (error) {
-  console.error("❌ Error while creating order:");
-  if (error.response) {
-    console.error("Response data:", error.response.data);
-    console.error("Status:", error.response.status);
-    console.error("Headers:", error.response.headers);
-  } else if (error.request) {
-    console.error("No response received. Request:", error.request);
-  } else {
-    console.error("Error message:", error.message);
+  } catch (error) {
+    console.error("❌ Error while creating order:");
+    if (error.response) {
+      console.error("Response data:", error.response.data);
+      console.error("Status:", error.response.status);
+      console.error("Headers:", error.response.headers);
+    } else if (error.request) {
+      console.error("No response received. Request:", error.request);
+    } else {
+      console.error("Error message:", error.message);
+    }
+    return res.status(500).json({ error: 'Failed to get payment URL from server.' });
   }
-  return res.status(500).json({ error: 'Failed to get payment URL from server.' });
-}
+};
     
 
 
