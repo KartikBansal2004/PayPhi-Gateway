@@ -23,7 +23,7 @@ exports.createOrder = async (req, res) => {
     customerEmailID: "",
     transactionType: "SALE",
     txnDate: getCurrentYmdHis(),
-    returnURL: "https://83e6f1b27c06.ngrok-free.app/jioPGCallback",
+    returnURL: "http://13.235.80.49:3000/jioPGCallback",
     customerMobileNo: "",
     addlParam1: "RES123456789",
     addlParam2: "",
