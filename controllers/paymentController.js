@@ -88,6 +88,9 @@ exports.createOrder = async (req, res) => {
 exports.jioPGCallback = async (req, res) => {
   console.log("📥 Received PayPhi Callback Body:", req.body);
 
+    res.status(200).send("OK");
+
+
   const { merchantTxnNo, tranId, amount, responseCode, responseMessage } = req.body;
 
   const success = responseCode === "0000";
