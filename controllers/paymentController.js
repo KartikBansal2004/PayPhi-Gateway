@@ -67,11 +67,6 @@ exports.createOrder = async (req, res) => {
         details: response.data,
       });
     }
-//   } catch (err) {
-//     console.error("❌ PayPhi API Error:", err?.response?.data || err.message);
-//     res.status(500).json({ error: "Failed to initiate PayPhi payment" });
-//   }
-// };
 
   } catch (error) {
     console.error("❌ Error while creating order:");
