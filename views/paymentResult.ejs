@@ -1,25 +1,35 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <title>Payment Result</title>
-  <style>
-    body { font-family: Arial; padding: 20px; background: #f9f9f9; }
-    .container { max-width: 600px; margin: auto; padding: 20px; background: #fff; border-radius: 10px; box-shadow: 0 0 10px #ccc; }
-    h1 { color: <%= status === "SUCCESS" ? "green" : "red" %>; }
-    p { font-size: 1.1em; }
-    .home-btn { margin-top: 20px; display: inline-block; padding: 10px 20px; background: #007bff; color: white; border-radius: 5px; text-decoration: none; }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <h1><%= status === "SUCCESS" ? "✅ Payment Successful" : "❌ Payment Failed" %></h1>
-    <p><strong>Merchant Txn No:</strong> <%= merchantTxnNo %></p>
-    <p><strong>Transaction ID:</strong> <%= transactionId %></p>
-    <p><strong>Amount:</strong> ₹<%= amount %></p>
-    <p><strong>Status:</strong> <%= status %></p>
-    <p><strong>Response Code:</strong> <%= responseCode %></p>
-    <p><strong>Message:</strong> <%= message %></p>
-    <a class="home-btn" href="/">🔙 Return to Home</a>
-  </div>
-</body>
+  <head>
+    <title>Transaction Result</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        padding: 20px;
+      }
+      .success {
+        color: green;
+      }
+      .fail {
+        color: red;
+      }
+      .info-box {
+        border: 1px solid #ccc;
+        padding: 15px;
+        border-radius: 10px;
+        margin-top: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1 class="<%= statusClass %>"><%= statusMessage %></h1>
+    <div class="info-box">
+      <p><strong>Transaction ID:</strong> <%= merchantTxnNo %></p>
+      <p><strong>Amount:</strong> ₹<%= amount %></p>
+      <p><strong>Response Code:</strong> <%= responseCode %></p>
+      <p><strong>Message:</strong> <%= responseMessage %></p>
+      <p><strong>Status:</strong> <%= status %></p>
+    </div>
+    <a href="/" class="btn-home"><button>🏠 Return to Home</button></a>
+  </body>
 </html>
